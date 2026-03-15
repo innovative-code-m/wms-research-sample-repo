@@ -16,6 +16,12 @@ var warehouses = new[]
     new Warehouse("WH-02", "第2倉庫"),
 };
 
+var customers = new[]
+{
+    new Customer("CUS-001", "取引先A"),
+    new Customer("CUS-002", "取引先B"),
+};
+
 var locations = new[]
 {
     new Location("LOC-001", "A-01-01", "WH-01"),
@@ -35,8 +41,10 @@ var stocks = new[]
 var itemRepository = new InMemoryItemRepository(items);
 var warehouseRepository = new InMemoryWarehouseRepository(warehouses);
 var locationRepository = new InMemoryLocationRepository(locations);
+var customerRepository = new InMemoryCustomerRepository(customers);
 var stockRepository = new InMemoryStockRepository(stocks);
 var inboundReceiptRepository = new InMemoryInboundReceiptRepository();
+var outboundOrderRepository = new InMemoryOutboundOrderRepository();
 var getStockUseCase = new GetStockUseCase(stockRepository, itemRepository);
 var registerInboundUseCase = new RegisterInboundUseCase(
     itemRepository,
@@ -44,10 +52,16 @@ var registerInboundUseCase = new RegisterInboundUseCase(
     locationRepository,
     stockRepository,
     inboundReceiptRepository);
+var registerOutboundOrderUseCase = new RegisterOutboundOrderUseCase(
+    itemRepository,
+    warehouseRepository,
+    locationRepository,
+    customerRepository,
+    outboundOrderRepository);
 
-Console.WriteLine("=== WMS Console Demo: 在庫照会 / 入荷登録 ===");
+Console.WriteLine("=== WMS Console Demo: 在庫照会 / 入荷登録 / 出荷指示登録 ===");
 Console.WriteLine();
-Console.WriteLine($"投入済みマスタ: 商品 {items.Length} 件 / 倉庫 {warehouses.Length} 件 / ロケーション {locations.Length} 件");
+Console.WriteLine($"投入済みマスタ: 商品 {items.Length} 件 / 倉庫 {warehouses.Length} 件 / ロケーション {locations.Length} 件 / 出荷先 {customers.Length} 件");
 Console.WriteLine();
 
 var exactQuery = new StockQuery(
@@ -96,6 +110,36 @@ if (afterInboundResults.Count == 0)
 else
 {
     var stock = afterInboundResults[0];
+    Console.WriteLine($"結果: {stock.ItemCode} {stock.ItemName} / {stock.WarehouseCode} / {stock.LocationCode} / 数量 {stock.Quantity}");
+}
+
+Console.WriteLine();
+
+Console.WriteLine("[出荷指示登録]");
+var outboundResult = registerOutboundOrderUseCase.Execute(new RegisterOutboundOrderCommand(
+    OutboundOrderNumber: "OUT-0001",
+    ItemCode: "ITEM-001",
+    WarehouseCode: "WH-01",
+    LocationCode: "LOC-001",
+    Quantity: 15,
+    ScheduledShipDate: new DateOnly(2026, 3, 18),
+    CustomerCode: "CUS-001"));
+
+Console.WriteLine(
+    $"結果: {outboundResult.OutboundOrderNumber} / {outboundResult.ItemCode} / {outboundResult.WarehouseCode} / {outboundResult.LocationCode} / 指示 {outboundResult.OrderedQuantity} / 出荷先 {outboundResult.CustomerCode} / 状態 {outboundResult.Status}");
+Console.WriteLine($"出荷指示件数: {outboundOrderRepository.List().Count}");
+Console.WriteLine();
+
+Console.WriteLine("[出荷指示登録後の在庫照会]");
+var afterOutboundResults = getStockUseCase.Execute(exactQuery);
+
+if (afterOutboundResults.Count == 0)
+{
+    Console.WriteLine("結果: 在庫なし (0)");
+}
+else
+{
+    var stock = afterOutboundResults[0];
     Console.WriteLine($"結果: {stock.ItemCode} {stock.ItemName} / {stock.WarehouseCode} / {stock.LocationCode} / 数量 {stock.Quantity}");
 }
 
