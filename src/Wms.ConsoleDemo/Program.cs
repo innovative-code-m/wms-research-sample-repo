@@ -45,6 +45,7 @@ var customerRepository = new InMemoryCustomerRepository(customers);
 var stockRepository = new InMemoryStockRepository(stocks);
 var inboundReceiptRepository = new InMemoryInboundReceiptRepository();
 var outboundOrderRepository = new InMemoryOutboundOrderRepository();
+var dailyStockSnapshotRepository = new InMemoryDailyStockSnapshotRepository();
 var getStockUseCase = new GetStockUseCase(stockRepository, itemRepository);
 var registerInboundUseCase = new RegisterInboundUseCase(
     itemRepository,
@@ -58,8 +59,12 @@ var registerOutboundOrderUseCase = new RegisterOutboundOrderUseCase(
     locationRepository,
     customerRepository,
     outboundOrderRepository);
+var runDailyStockAggregationUseCase = new RunDailyStockAggregationUseCase(
+    stockRepository,
+    itemRepository,
+    dailyStockSnapshotRepository);
 
-Console.WriteLine("=== WMS Console Demo: 在庫照会 / 入荷登録 / 出荷指示登録 ===");
+Console.WriteLine("=== WMS Console Demo: 在庫照会 / 入荷登録 / 出荷指示登録 / 日次在庫集計 ===");
 Console.WriteLine();
 Console.WriteLine($"投入済みマスタ: 商品 {items.Length} 件 / 倉庫 {warehouses.Length} 件 / ロケーション {locations.Length} 件 / 出荷先 {customers.Length} 件");
 Console.WriteLine();
@@ -143,6 +148,23 @@ else
     Console.WriteLine($"結果: {stock.ItemCode} {stock.ItemName} / {stock.WarehouseCode} / {stock.LocationCode} / 数量 {stock.Quantity}");
 }
 
+Console.WriteLine();
+
+Console.WriteLine("[日次在庫集計]");
+var aggregationDate = new DateOnly(2026, 3, 16);
+var aggregationResult = runDailyStockAggregationUseCase.Execute(new RunDailyStockAggregationCommand(aggregationDate));
+
+Console.WriteLine($"実行日: {aggregationResult.ExecutionDate:yyyy-MM-dd}");
+Console.WriteLine($"件数: {aggregationResult.SnapshotCount}");
+Console.WriteLine($"ログ: {aggregationResult.ExecutionLog}");
+
+foreach (var snapshot in aggregationResult.Snapshots)
+{
+    Console.WriteLine(
+        $"{snapshot.SnapshotDate:yyyy-MM-dd} {snapshot.ItemCode,-10} {snapshot.ItemName,-10} {snapshot.WarehouseCode,-5} {snapshot.LocationCode,-7} 数量 {snapshot.Quantity}");
+}
+
+Console.WriteLine($"保存済みスナップショット件数: {dailyStockSnapshotRepository.List(aggregationDate).Count}");
 Console.WriteLine();
 
 var noMatchResults = getStockUseCase.Execute(new StockQuery(
