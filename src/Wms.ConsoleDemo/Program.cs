@@ -169,6 +169,7 @@ Console.WriteLine($"行数: {csvReport.LineCount}");
 Console.WriteLine(csvReport.Content);
 Console.WriteLine();
 
+var aggregationDate = new DateOnly(2026, 3, 16);
 inventoryCountRepository.Add(new InventoryCount(
     inventoryCountId: "IC-0001",
     itemCode: "ITEM-001",
