@@ -46,6 +46,7 @@ var stockRepository = new InMemoryStockRepository(stocks);
 var inboundReceiptRepository = new InMemoryInboundReceiptRepository();
 var outboundOrderRepository = new InMemoryOutboundOrderRepository();
 var dailyStockSnapshotRepository = new InMemoryDailyStockSnapshotRepository();
+var inventoryCountRepository = new InMemoryInventoryCountRepository();
 var getStockUseCase = new GetStockUseCase(stockRepository, itemRepository);
 var registerInboundUseCase = new RegisterInboundUseCase(
     itemRepository,
@@ -63,8 +64,12 @@ var runDailyStockAggregationUseCase = new RunDailyStockAggregationUseCase(
     stockRepository,
     itemRepository,
     dailyStockSnapshotRepository);
+var generateInventoryDifferenceReportUseCase = new GenerateInventoryDifferenceReportUseCase(
+    inventoryCountRepository,
+    stockRepository,
+    itemRepository);
 
-Console.WriteLine("=== WMS Console Demo: 在庫照会 / 入荷登録 / 出荷指示登録 / 日次在庫集計 ===");
+Console.WriteLine("=== WMS Console Demo: 在庫照会 / 入荷登録 / 出荷指示登録 / 日次在庫集計 / 棚卸差異レポート ===");
 Console.WriteLine();
 Console.WriteLine($"投入済みマスタ: 商品 {items.Length} 件 / 倉庫 {warehouses.Length} 件 / ロケーション {locations.Length} 件 / 出荷先 {customers.Length} 件");
 Console.WriteLine();
@@ -165,6 +170,38 @@ foreach (var snapshot in aggregationResult.Snapshots)
 }
 
 Console.WriteLine($"保存済みスナップショット件数: {dailyStockSnapshotRepository.List(aggregationDate).Count}");
+Console.WriteLine();
+
+inventoryCountRepository.Add(new InventoryCount(
+    inventoryCountId: "IC-0001",
+    itemCode: "ITEM-001",
+    warehouseCode: "WH-01",
+    locationCode: "LOC-001",
+    countedQuantity: 118,
+    countedDate: aggregationDate));
+inventoryCountRepository.Add(new InventoryCount(
+    inventoryCountId: "IC-0002",
+    itemCode: "ITEM-002",
+    warehouseCode: "WH-01",
+    locationCode: "LOC-003",
+    countedQuantity: 30,
+    countedDate: aggregationDate));
+
+Console.WriteLine("[棚卸差異レポート]");
+var differenceReport = generateInventoryDifferenceReportUseCase.Execute(
+    new GenerateInventoryDifferenceReportCommand(aggregationDate));
+
+Console.WriteLine($"棚卸日: {differenceReport.CountedDate:yyyy-MM-dd}");
+Console.WriteLine($"レポート件数: {differenceReport.ReportLineCount}");
+Console.WriteLine($"差異件数: {differenceReport.DifferenceCount}");
+Console.WriteLine($"ログ: {differenceReport.ExecutionLog}");
+
+foreach (var difference in differenceReport.Differences)
+{
+    Console.WriteLine(
+        $"{difference.InventoryCountId,-8} {difference.ItemCode,-10} {difference.ItemName,-10} {difference.WarehouseCode,-5} {difference.LocationCode,-7} 理論 {difference.BookQuantity,3} 実棚 {difference.CountedQuantity,3} 差異 {difference.DifferenceQuantity,3}");
+}
+
 Console.WriteLine();
 
 var noMatchResults = getStockUseCase.Execute(new StockQuery(
