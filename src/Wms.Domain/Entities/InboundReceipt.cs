@@ -1,9 +1,20 @@
 namespace Wms.Domain.Entities;
 
-public sealed class Stock
+public sealed class InboundReceipt
 {
-    public Stock(string itemCode, string warehouseCode, string locationCode, int quantity)
+    public InboundReceipt(
+        string inboundNumber,
+        string itemCode,
+        string warehouseCode,
+        string locationCode,
+        int quantity,
+        DateOnly inboundDate)
     {
+        if (string.IsNullOrWhiteSpace(inboundNumber))
+        {
+            throw new ArgumentException("Inbound number is required.", nameof(inboundNumber));
+        }
+
         if (string.IsNullOrWhiteSpace(itemCode))
         {
             throw new ArgumentException("Item code is required.", nameof(itemCode));
@@ -19,16 +30,20 @@ public sealed class Stock
             throw new ArgumentException("Location code is required.", nameof(locationCode));
         }
 
-        if (quantity < 0)
+        if (quantity <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(quantity), "Stock quantity cannot be negative.");
+            throw new ArgumentOutOfRangeException(nameof(quantity), "Inbound quantity must be greater than zero.");
         }
 
+        InboundNumber = inboundNumber;
         ItemCode = itemCode;
         WarehouseCode = warehouseCode;
         LocationCode = locationCode;
         Quantity = quantity;
+        InboundDate = inboundDate;
     }
+
+    public string InboundNumber { get; }
 
     public string ItemCode { get; }
 
@@ -38,13 +53,5 @@ public sealed class Stock
 
     public int Quantity { get; }
 
-    public Stock Increase(int quantity)
-    {
-        if (quantity <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(quantity), "Increase quantity must be greater than zero.");
-        }
-
-        return new Stock(ItemCode, WarehouseCode, LocationCode, Quantity + quantity);
-    }
+    public DateOnly InboundDate { get; }
 }

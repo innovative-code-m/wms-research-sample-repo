@@ -21,6 +21,7 @@ var locations = new[]
     new Location("LOC-001", "A-01-01", "WH-01"),
     new Location("LOC-002", "A-01-02", "WH-01"),
     new Location("LOC-003", "B-01-01", "WH-01"),
+    new Location("LOC-001", "A-01-01", "WH-02"),
 };
 
 var stocks = new[]
@@ -32,10 +33,19 @@ var stocks = new[]
 };
 
 var itemRepository = new InMemoryItemRepository(items);
+var warehouseRepository = new InMemoryWarehouseRepository(warehouses);
+var locationRepository = new InMemoryLocationRepository(locations);
 var stockRepository = new InMemoryStockRepository(stocks);
+var inboundReceiptRepository = new InMemoryInboundReceiptRepository();
 var getStockUseCase = new GetStockUseCase(stockRepository, itemRepository);
+var registerInboundUseCase = new RegisterInboundUseCase(
+    itemRepository,
+    warehouseRepository,
+    locationRepository,
+    stockRepository,
+    inboundReceiptRepository);
 
-Console.WriteLine("=== WMS Console Demo: 在庫照会 ===");
+Console.WriteLine("=== WMS Console Demo: 在庫照会 / 入荷登録 ===");
 Console.WriteLine();
 Console.WriteLine($"投入済みマスタ: 商品 {items.Length} 件 / 倉庫 {warehouses.Length} 件 / ロケーション {locations.Length} 件");
 Console.WriteLine();
@@ -57,6 +67,35 @@ if (exactResults.Count == 0)
 else
 {
     var stock = exactResults[0];
+    Console.WriteLine($"結果: {stock.ItemCode} {stock.ItemName} / {stock.WarehouseCode} / {stock.LocationCode} / 数量 {stock.Quantity}");
+}
+
+Console.WriteLine();
+
+Console.WriteLine("[入荷登録]");
+var inboundResult = registerInboundUseCase.Execute(new RegisterInboundCommand(
+    InboundNumber: "INB-0001",
+    ItemCode: "ITEM-001",
+    WarehouseCode: "WH-01",
+    LocationCode: "LOC-001",
+    Quantity: 20,
+    InboundDate: new DateOnly(2026, 3, 16)));
+
+Console.WriteLine(
+    $"結果: {inboundResult.InboundNumber} / {inboundResult.ItemCode} / {inboundResult.WarehouseCode} / {inboundResult.LocationCode} / 入荷 {inboundResult.ReceivedQuantity} / 更新後在庫 {inboundResult.UpdatedStockQuantity}");
+Console.WriteLine($"入荷実績件数: {inboundReceiptRepository.List().Count}");
+Console.WriteLine();
+
+Console.WriteLine("[入荷後の在庫照会]");
+var afterInboundResults = getStockUseCase.Execute(exactQuery);
+
+if (afterInboundResults.Count == 0)
+{
+    Console.WriteLine("結果: 在庫なし (0)");
+}
+else
+{
+    var stock = afterInboundResults[0];
     Console.WriteLine($"結果: {stock.ItemCode} {stock.ItemName} / {stock.WarehouseCode} / {stock.LocationCode} / 数量 {stock.Quantity}");
 }
 

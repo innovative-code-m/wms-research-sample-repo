@@ -5,4 +5,8 @@ namespace Wms.Application.Ports;
 public interface IStockRepository
 {
     IReadOnlyList<Stock> Find(string? itemCode = null, string? warehouseCode = null, string? locationCode = null);
+
+    Stock? FindSingle(string itemCode, string warehouseCode, string locationCode);
+
+    void Save(Stock stock);
 }
