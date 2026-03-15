@@ -11,8 +11,6 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
-[Ll]ogs/
-
 # Build log directories (exclude bin/Log etc, but keep project log/)
 [Bb]in/[Ll]og/
 [Oo]bj/[Ll]og/
