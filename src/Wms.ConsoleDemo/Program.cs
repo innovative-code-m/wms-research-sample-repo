@@ -1,6 +1,7 @@
 using Wms.Application.Dto;
 using Wms.Application.UseCases;
 using Wms.Domain.Entities;
+using Wms.Domain.Enums;
 using Wms.Infrastructure.InMemory;
 
 var items = new[]
@@ -48,6 +49,7 @@ var outboundOrderRepository = new InMemoryOutboundOrderRepository();
 var dailyStockSnapshotRepository = new InMemoryDailyStockSnapshotRepository();
 var inventoryCountRepository = new InMemoryInventoryCountRepository();
 var getStockUseCase = new GetStockUseCase(stockRepository, itemRepository);
+var exportStockReportUseCase = new ExportStockReportUseCase(getStockUseCase);
 var registerInboundUseCase = new RegisterInboundUseCase(
     itemRepository,
     warehouseRepository,
@@ -69,7 +71,7 @@ var generateInventoryDifferenceReportUseCase = new GenerateInventoryDifferenceRe
     stockRepository,
     itemRepository);
 
-Console.WriteLine("=== WMS Console Demo: 在庫照会 / 入荷登録 / 出荷指示登録 / 日次在庫集計 / 棚卸差異レポート ===");
+Console.WriteLine("=== WMS Console Demo: 在庫照会 / 入荷登録 / 出荷指示登録 / 日次在庫集計 / 棚卸差異レポート / 在庫一覧表出力 ===");
 Console.WriteLine();
 Console.WriteLine($"投入済みマスタ: 商品 {items.Length} 件 / 倉庫 {warehouses.Length} 件 / ロケーション {locations.Length} 件 / 出荷先 {customers.Length} 件");
 Console.WriteLine();
@@ -202,6 +204,18 @@ foreach (var difference in differenceReport.Differences)
         $"{difference.InventoryCountId,-8} {difference.ItemCode,-10} {difference.ItemName,-10} {difference.WarehouseCode,-5} {difference.LocationCode,-7} 理論 {difference.BookQuantity,3} 実棚 {difference.CountedQuantity,3} 差異 {difference.DifferenceQuantity,3}");
 }
 
+Console.WriteLine();
+
+Console.WriteLine("[在庫一覧表出力: TEXT]");
+var textReport = exportStockReportUseCase.Execute(new ExportStockReportCommand(ReportFormat.Text));
+Console.WriteLine($"行数: {textReport.LineCount}");
+Console.WriteLine(textReport.Content);
+Console.WriteLine();
+
+Console.WriteLine("[在庫一覧表出力: CSV]");
+var csvReport = exportStockReportUseCase.Execute(new ExportStockReportCommand(ReportFormat.Csv));
+Console.WriteLine($"行数: {csvReport.LineCount}");
+Console.WriteLine(csvReport.Content);
 Console.WriteLine();
 
 var noMatchResults = getStockUseCase.Execute(new StockQuery(
