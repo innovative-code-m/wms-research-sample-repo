@@ -38,8 +38,8 @@
 |------|------|
 | 目的 | 入荷実績を登録し、在庫を増加させる |
 | 入力項目 | 入荷予定ID、実数量、ロット番号、倉庫、ロケーション |
-| 処理概要 | InboundResult を作成し、該当 Stock の Quantity を増加 |
-| 更新対象 | InboundResult, Stock |
+| 処理概要 | InboundReceipt を作成し、該当 Stock の Quantity を増加 |
+| 更新対象 | InboundReceipt, Stock |
 | エラー例 | 入荷予定なし、数量0以下、在庫レコード未存在 |
 | 画面責務 | 入荷予定選択、実績入力、登録実行、結果表示 |
 

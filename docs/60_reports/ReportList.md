@@ -26,7 +26,7 @@
 | 帳票ID | R002 |
 | 名称 | 入荷実績一覧 |
 | 用途 | 入荷実績の履歴確認、入荷トレース |
-| 出力元データ | InboundResult, InboundOrder, Item, Supplier |
+| 出力元データ | InboundReceipt, InboundOrder, Item, Supplier |
 | 主要項目 | 入荷実績ID、入荷予定ID、商品、数量、ロット、入荷日時、仕入先 |
 | 想定フォーマット | CSV、PDF、画面表示 |
 
@@ -77,7 +77,7 @@
 flowchart LR
     subgraph Data [データソース]
         Stock
-        InboundResult
+        InboundReceipt
         Shipment
         InventoryCount
         DailySummary[日次集計結果]
@@ -92,7 +92,7 @@ flowchart LR
     end
 
     Stock --> R1
-    InboundResult --> R2
+    InboundReceipt --> R2
     Shipment --> R3
     InventoryCount --> R4
     Stock --> R4

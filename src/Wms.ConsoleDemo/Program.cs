@@ -157,21 +157,16 @@ else
 
 Console.WriteLine();
 
-Console.WriteLine("[日次在庫集計]");
-var aggregationDate = new DateOnly(2026, 3, 16);
-var aggregationResult = runDailyStockAggregationUseCase.Execute(new RunDailyStockAggregationCommand(aggregationDate));
+Console.WriteLine("[在庫一覧表出力: TEXT]");
+var textReport = exportStockReportUseCase.Execute(new ExportStockReportCommand(ReportFormat.Text));
+Console.WriteLine($"行数: {textReport.LineCount}");
+Console.WriteLine(textReport.Content);
+Console.WriteLine();
 
-Console.WriteLine($"実行日: {aggregationResult.ExecutionDate:yyyy-MM-dd}");
-Console.WriteLine($"件数: {aggregationResult.SnapshotCount}");
-Console.WriteLine($"ログ: {aggregationResult.ExecutionLog}");
-
-foreach (var snapshot in aggregationResult.Snapshots)
-{
-    Console.WriteLine(
-        $"{snapshot.SnapshotDate:yyyy-MM-dd} {snapshot.ItemCode,-10} {snapshot.ItemName,-10} {snapshot.WarehouseCode,-5} {snapshot.LocationCode,-7} 数量 {snapshot.Quantity}");
-}
-
-Console.WriteLine($"保存済みスナップショット件数: {dailyStockSnapshotRepository.List(aggregationDate).Count}");
+Console.WriteLine("[在庫一覧表出力: CSV]");
+var csvReport = exportStockReportUseCase.Execute(new ExportStockReportCommand(ReportFormat.Csv));
+Console.WriteLine($"行数: {csvReport.LineCount}");
+Console.WriteLine(csvReport.Content);
 Console.WriteLine();
 
 inventoryCountRepository.Add(new InventoryCount(
@@ -206,16 +201,20 @@ foreach (var difference in differenceReport.Differences)
 
 Console.WriteLine();
 
-Console.WriteLine("[在庫一覧表出力: TEXT]");
-var textReport = exportStockReportUseCase.Execute(new ExportStockReportCommand(ReportFormat.Text));
-Console.WriteLine($"行数: {textReport.LineCount}");
-Console.WriteLine(textReport.Content);
-Console.WriteLine();
+Console.WriteLine("[日次在庫集計]");
+var aggregationResult = runDailyStockAggregationUseCase.Execute(new RunDailyStockAggregationCommand(aggregationDate));
 
-Console.WriteLine("[在庫一覧表出力: CSV]");
-var csvReport = exportStockReportUseCase.Execute(new ExportStockReportCommand(ReportFormat.Csv));
-Console.WriteLine($"行数: {csvReport.LineCount}");
-Console.WriteLine(csvReport.Content);
+Console.WriteLine($"実行日: {aggregationResult.ExecutionDate:yyyy-MM-dd}");
+Console.WriteLine($"件数: {aggregationResult.SnapshotCount}");
+Console.WriteLine($"ログ: {aggregationResult.ExecutionLog}");
+
+foreach (var snapshot in aggregationResult.Snapshots)
+{
+    Console.WriteLine(
+        $"{snapshot.SnapshotDate:yyyy-MM-dd} {snapshot.ItemCode,-10} {snapshot.ItemName,-10} {snapshot.WarehouseCode,-5} {snapshot.LocationCode,-7} 数量 {snapshot.Quantity}");
+}
+
+Console.WriteLine($"保存済みスナップショット件数: {dailyStockSnapshotRepository.List(aggregationDate).Count}");
 Console.WriteLine();
 
 var noMatchResults = getStockUseCase.Execute(new StockQuery(

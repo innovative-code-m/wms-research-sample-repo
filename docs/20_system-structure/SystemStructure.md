@@ -53,7 +53,7 @@ flowchart TB
 | 処理 | 責務 | 更新対象 |
 |------|------|----------|
 | 在庫照会 | 照会のみ、更新なし | なし |
-| 入荷登録 | 入荷実績登録、在庫増 | Stock, InboundResult |
+| 入荷登録 | 入荷実績登録、在庫増 | Stock, InboundReceipt |
 | 出荷指示登録 | 出荷指示の登録 | OutboundOrder |
 | 引当処理 | 在庫引当、確保 | Allocation, Stock |
 | 出荷確定 | 出荷実績確定、在庫減 | Shipment, Stock |
@@ -81,7 +81,7 @@ flowchart TB
 | 帳票 | 出力元 | 用途 |
 |------|--------|------|
 | 在庫一覧表 | Stock | 在庫確認 |
-| 入荷実績一覧 | InboundResult | 入荷履歴確認 |
+| 入荷実績一覧 | InboundReceipt | 入荷履歴確認 |
 | 出荷実績一覧 | Shipment | 出荷履歴確認 |
 | 棚卸差異一覧 | InventoryCount, Stock | 棚卸差異確認 |
 | 日次在庫集計表 | 日次集計結果 | 日次サマリ |

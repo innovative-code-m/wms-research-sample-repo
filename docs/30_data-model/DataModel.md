@@ -75,15 +75,15 @@
 | 役割 | 入荷予定情報を保持 |
 | 主キー | InboundOrderId |
 | 主な属性 | ExpectedDate, ItemCode, ExpectedQuantity, SupplierCode |
-| 関連 | Supplier, Item, InboundResult |
-| 業務上の意味 | 入荷登録の入力元。実績登録で InboundResult が生成される |
+| 関連 | Supplier, Item, InboundReceipt |
+| 業務上の意味 | 入荷登録の入力元。実績登録で InboundReceipt が生成される |
 
-### InboundResult（入荷実績）
+### InboundReceipt（入荷実績）
 
 | 項目 | 内容 |
 |------|------|
 | 役割 | 入荷実績を保持。在庫増の根拠 |
-| 主キー | InboundResultId |
+| 主キー | InboundReceiptId |
 | 主な属性 | InboundOrderId, ActualQuantity, LotNo, ReceivedAt |
 | 関連 | InboundOrder, Stock |
 | 業務上の意味 | 入荷登録で作成。在庫増と1:1対応 |
@@ -150,8 +150,8 @@ erDiagram
     Stock ||--o{ Allocation : "allocated"
     Supplier ||--o{ InboundOrder : "supplies"
     Item ||--o{ InboundOrder : "ordered"
-    InboundOrder ||--o{ InboundResult : "results"
-    InboundResult ||--o| Stock : "increases"
+    InboundOrder ||--o{ InboundReceipt : "results"
+    InboundReceipt ||--o| Stock : "increases"
     Customer ||--o{ OutboundOrder : "orders"
     Item ||--o{ OutboundOrder : "ordered"
     OutboundOrder ||--o{ Allocation : "allocated"
